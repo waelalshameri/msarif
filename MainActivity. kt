@@ -1,0 +1,57 @@
+package com.example.masarifi
+
+import android.app.AlertDialog
+import android.os.Bundle
+import android.view.LayoutInflater
+import androidx.appcompat.app.AppCompatActivity
+import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.dialog_add_data.view.*
+
+class MainActivity : AppCompatActivity() {
+
+    private var totalIncome = 0.0
+    private var totalExpenses = 0.0
+    private val expensesByCategory = mutableMapOf<String, Double>()
+    private val budgetsByCategory = mutableMapOf<String, Double>()
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+
+        btnAddIncome.setOnClickListener { showAddDataDialog("دخل") }
+        btnAddExpense.setOnClickListener { showAddDataDialog("مصروف") }
+        btnAddTransfer.setOnClickListener { showAddDataDialog("تحويل") }
+
+        updateStatistics()
+    }
+
+    private fun showAddDataDialog(type: String) {
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_add_data, null)
+        val dialog = AlertDialog.Builder(this).setView(dialogView).create()
+
+        dialogView.btnSave.setOnClickListener {
+            val amount = dialogView.etAmount.text.toString().toDoubleOrNull() ?: 0.0
+            val category = dialogView.etCategory.text.toString()
+
+            when (type) {
+                "دخل" -> totalIncome += amount
+                "مصروف" -> {
+                    totalExpenses += amount
+                    expensesByCategory[category] = (expensesByCategory[category] ?: 0.0) + amount
+                }
+                "تحويل" -> totalExpenses += amount
+            }
+
+            updateStatistics()
+            dialog.dismiss()
+        }
+
+        dialog.show()
+    }
+
+    private fun updateStatistics() {
+        tvIncome.text = "الدخل: $totalIncome ريال"
+        tvExpenses.text = "المصروفات: $totalExpenses ريال"
+        tvRemaining.text = "المتبقي: ${totalIncome - totalExpenses} ريال"
+    }
+}
